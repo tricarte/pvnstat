@@ -28,8 +28,8 @@ h3 {
 table {
     width: 100%;
     margin-bottom: 15px;
-    border: 1px;
-    border-style: dashed;
+    /* border: 1px; */
+    /* border-style: dashed; */
 }
 
 th, tr {
@@ -37,9 +37,9 @@ th, tr {
 }
 
 caption {
-color: white;
-background-color: grey;
-text-align: left;
+/* color: white; */
+/* background-color: grey; */
+text-align: center;
 padding: 5px;
 }
 
@@ -73,7 +73,7 @@ p.anchors {
 text-align: center;
 /* position: sticky; */
 /* top: 0; */
-background-color: lightgrey;
+/* background-color: lightgrey; */
 padding: 10px;
 }
 

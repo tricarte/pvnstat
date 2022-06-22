@@ -12,13 +12,16 @@ function human_filesize($bytes, $decimals = 2) {
     return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor];
 }
 
+# Interfaces monitored by vnstat
 $iflist_arr = null;
 exec( 'vnstat --iflist 1', $iflist_arr );
 
+# Different versions of vnstat
 if(str_starts_with($iflist_arr[0], 'Available interfaces:')) {
     $iflist_arr = explode(' ', trim(str_replace('Available interfaces:', '', $iflist_arr[0] )));
 }
 
+# Get the currently active interface this system uses
 if( 'Linux' == PHP_OS && ! isset($_REQUEST['if']) ) {
     $activeiface = trim(shell_exec( 'ip route | grep default | cut -d" " -f5' ));
     if(! in_array($activeiface, $iflist_arr)) {
@@ -26,46 +29,49 @@ if( 'Linux' == PHP_OS && ! isset($_REQUEST['if']) ) {
     }
 }
 
+# Set the interface to be displayed
 $iface = $_REQUEST['if'] ?? $activeiface ?? $iflist_arr[0] ?? null;
 if( null == $iface ) {
     exit("Could not get interfaces list...");
 }
 
+# Check that determined interface is monitored by vnstat
 $ifstatus = trim(shell_exec("vnstat -i $iface"));
 $ifstatus = str_starts_with($ifstatus, 'Error:');
 
 if(! $ifstatus) {
     $vnstat = 'vnstat -i ' . trim($iface) . ' --json';
+    $data = json_decode(shell_exec($vnstat));
 
     # Summary
     $onelineOutput = trim(shell_exec("$vnstat --oneline b"));
     $oneline = explode( ';', $onelineOutput );
 
-    # Top 10 Days
-    $topCommand = $vnstat . ' t --limit 10';
-    $topOutput = trim(shell_exec( $topCommand ));
-    $top = json_decode( $topOutput );
+    # Days
+    // $topCommand = $vnstat . ' t --limit 10';
+    // $topOutput = trim(shell_exec( $topCommand ));
+    // $top = json_decode( $topOutput );
 
     # Last 30 Days
     # TODO: Highlight the highest value
-    $daysCommand = $vnstat . ' d --limit 30';
-    $daysOutput = trim(shell_exec( $daysCommand ));
-    $days = json_decode( $daysOutput );
+    // $daysCommand = $vnstat . ' d --limit 30';
+    // $daysOutput = trim(shell_exec( $daysCommand ));
+    // $days = json_decode( $daysOutput );
 
     # Last 12 Months
-    $monthsCommand = $vnstat . ' m --limit 12';
-    $monthsOutput = trim(shell_exec( $monthsCommand ));
-    $months = json_decode( $monthsOutput );
+    // $monthsCommand = $vnstat . ' m --limit 12';
+    // $monthsOutput = trim(shell_exec( $monthsCommand ));
+    // $months = json_decode( $monthsOutput );
 
     # Last 24 Hours
-    $beginDate = date('Y-m-d H:00', strtotime('-1 day'));
-    $hoursCommand = $vnstat . ' h --begin ' . "\"$beginDate\"";
-    $hoursOutput = trim(shell_exec( $hoursCommand ));
-    $hours = json_decode( $hoursOutput );
+    // $beginDate = date('Y-m-d H:00', strtotime('-1 day'));
+    // $hoursCommand = $vnstat . ' h --begin ' . "\"$beginDate\"";
+    // $hoursOutput = trim(shell_exec( $hoursCommand ));
+    // $hours = json_decode( $hoursOutput );
 
     # TODO: Implement
-    $yearsCommand = $vnstat . ' y ';
-    $yearsOutput = trim(shell_exec( $yearsCommand ));
+    // $yearsCommand = $vnstat . ' y ';
+    // $yearsOutput = trim(shell_exec( $yearsCommand ));
 }
 ?>
 <!doctype html>
@@ -103,23 +109,37 @@ if(! $ifstatus) {
 <p class="anchors">
 <a href="#summary">Summary</a>
 &bull;
-<a href="#top10days">Top 10 Days</a>
+<a href="#topdays">Top</a>
 &bull;
-<a href="#last30days">Last 30 Days</a>
+<a href="#days">Days</a>
 &bull;
-<a href="#last12months">Last 12 Months</a>
+<a href="#months">Months</a>
 &bull;
-<a href="#last24hours">Last 24 Hours</a>
+<a href="#hours">Hours</a>
 </p>
 
 <!-- Summary -->
+<?php
+$created = sprintf(
+    '%d-%02d-%02d'
+    , $data->interfaces[0]->created->date->year
+    , $data->interfaces[0]->created->date->month
+    , $data->interfaces[0]->created->date->day
+);
+$updated = sprintf(
+    '%d-%02d-%02d'
+    , $data->interfaces[0]->updated->date->year
+    , $data->interfaces[0]->updated->date->month
+    , $data->interfaces[0]->updated->date->day
+);
+?>
 <table>
 <caption>Summary <a href="#top" class="gotop">&uarr;</a></caption>
 <tr>
     <td></td>
     <th>Today</th>
     <th>This Month</th>
-    <th>All Time</th>
+    <th>All Time<br />( <?=$created;?> - <?=$updated;?> )</th>
 </tr>
 <tr>
     <th>Rx:</th>
@@ -142,15 +162,15 @@ if(! $ifstatus) {
 </table>
 
 <!-- TOP 10 DAYS -->
-<table id="top10days">
-<caption>Top 10 Days <a href="#top" class="gotop">&uarr;</a></caption>
+<table id="topdays">
+<caption>Top Days <a href="#top" class="gotop">&uarr;</a></caption>
 <tr>
 <th>Day</th>
 <th>Received</th>
 <th>Transferred</th>
 <th>Total</th>
 </tr>
-<?php foreach ($top->interfaces[0]->traffic->top as $day):
+<?php foreach ($data->interfaces[0]->traffic->top as $day):
 $date = sprintf( '%d-%02d-%02d', $day->date->year, $day->date->month, $day->date->day);
 $rx = ( $day->rx == 0 ) ? '-' :  human_filesize( $day->rx );
 $tx = ( $day->tx == 0 ) ? '-' :  human_filesize( $day->tx );
@@ -166,15 +186,15 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
 </table> <!-- End of TOP 10 DAYS -->
 
 <!-- Last 30 Days -->
-<table id="last30days">
-<caption>Last 30 Days <a href="#top" class="gotop">&uarr;</a></caption>
+<table id="days">
+<caption>Days <a href="#top" class="gotop">&uarr;</a></caption>
 <tr>
 <th>Day</th>
 <th>Received</th>
 <th>Transferred</th>
 <th>Total</th>
 </tr>
-<?php foreach ($days->interfaces[0]->traffic->day as $day):
+<?php foreach ($data->interfaces[0]->traffic->day as $day):
 $date = sprintf( '%d-%02d-%02d', $day->date->year, $day->date->month, $day->date->day);
 $rx = ( $day->rx == 0 ) ? '-' :  human_filesize( $day->rx );
 $tx = ( $day->tx == 0 ) ? '-' :  human_filesize( $day->tx );
@@ -190,15 +210,15 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
 </table> <!-- End of Last 30 Days -->
 
 <!-- MONTHS -->
-<table id="last12months">
-<caption>Last 12 Months <a href="#top" class="gotop">&uarr;</a></caption>
+<table id="months">
+<caption>Months <a href="#top" class="gotop">&uarr;</a></caption>
 <tr>
 <th>Month</th>
 <th>Received</th>
 <th>Transferred</th>
 <th>Total</th>
 </tr>
-<?php foreach ($months->interfaces[0]->traffic->month as $month):
+<?php foreach ($data->interfaces[0]->traffic->month as $month):
 $date = sprintf( '%d-%02d', $month->date->year, $month->date->month);
 $rx = ( $month->rx == 0 ) ? '-' :  human_filesize( $month->rx );
 $tx = ( $month->tx == 0 ) ? '-' :  human_filesize( $month->tx );
@@ -214,15 +234,15 @@ $total = ( $month->rx + $month->tx == 0 ) ? '-' : human_filesize( $month->rx + $
 </table> <!-- End of MONTHS -->
 
 <!-- HOURS -->
-<table id="last24hours">
-<caption>Last 24 Hours <a href="#top" class="gotop">&uarr;</a></caption>
+<table id="hours">
+<caption>Hours <a href="#top" class="gotop">&uarr;</a></caption>
 <tr>
 <th>Hour</th>
 <th>Received</th>
 <th>Transferred</th>
 <th>Total</th>
 </tr>
-<?php foreach ($hours->interfaces[0]->traffic->hour as $hour):
+<?php foreach ($data->interfaces[0]->traffic->hour as $hour):
 $time = sprintf( '%02d:00', $hour->time->hour );
 $rx = ( $hour->rx == 0 ) ? '-' :  human_filesize( $hour->rx );
 $tx = ( $hour->tx == 0 ) ? '-' :  human_filesize( $hour->tx );
