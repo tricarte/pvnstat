@@ -1,0 +1,92 @@
+body {
+	max-width: 650px;
+	margin: 40px auto;
+	padding: 0 10px;
+	font: 16px/1.5 -apple-system, BlinkMacSystemFont, "avenir next", avenir, "Segoe UI", "lucida grande", "helvetica neue", helvetica, "Fira Sans", roboto, noto, "Droid Sans", cantarell, oxygen, ubuntu, "franklin gothic medium", "century gothic", "Liberation Sans", sans-serif;
+	color: #444
+}
+
+h1,
+h2,
+h3 {
+	line-height: 1.2
+}
+
+@media (prefers-color-scheme: dark) {
+	body {
+		color: white;
+		background: #444
+	}
+	a:link {
+		color: #5bf
+	}
+	a:visited {
+		color: #ccf
+	}
+}
+
+table {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px;
+    border-style: dashed;
+}
+
+th, tr {
+    text-align: center;
+}
+
+caption {
+color: white;
+background-color: grey;
+text-align: left;
+padding: 5px;
+}
+
+td, th {
+    vertical-align: middle;
+}
+
+tr:nth-child(even) {
+  background: lemonchiffon;
+}
+
+
+.summary {
+width: 100%;
+}
+
+.summary th {
+/* text-align: right; */
+}
+
+.summary td {
+text-align: right;
+width: 100%;
+}
+
+a, a:visited {
+    color: darkblue;
+}
+
+p.anchors {
+text-align: center;
+/* position: sticky; */
+/* top: 0; */
+background-color: lightgrey;
+padding: 10px;
+}
+
+#iftitle {
+    text-align: center;
+}
+
+.gotop {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+}
+
+.error {
+    text-align: center;
+}
