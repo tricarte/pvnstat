@@ -1,5 +1,4 @@
 <?php
-# TODO: cache for 5 minutes
 if(! function_exists('str_starts_with')) {
     function str_starts_with($haystack, $needle) {
         return strpos($haystack, $needle) === 0 ? true : false;
@@ -11,6 +10,7 @@ function human_filesize($bytes, $decimals = 2) {
     $factor = floor((strlen($bytes) - 1) / 3);
     return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor];
 }
+
 
 # Interfaces monitored by vnstat
 $iflist_arr = null;
@@ -40,12 +40,30 @@ $ifstatus = trim(shell_exec("vnstat -i $iface"));
 $ifstatus = str_starts_with($ifstatus, 'Error:');
 
 if(! $ifstatus) {
-    $vnstat = 'vnstat -i ' . trim($iface) . ' --json';
-    $data = json_decode(shell_exec($vnstat));
+
+    if(apcu_enabled() == 1) {
+        $data = apcu_fetch("vnstat_data_{$iface}");
+    }
+
+    if(! $data) {
+        $vnstat = 'vnstat -i ' . trim($iface) . ' --json;vnstat -i ' . trim($iface) . ' --oneline b';
+
+        $output_arr = null;
+        exec($vnstat, $output_arr);
+
+        $data[0] = json_decode($output_arr[0]); # --json
+        $data[1] = explode( ';', $output_arr[1] ); # --oneline
+
+        if(apcu_enabled()) {
+            apcu_store("vnstat_data_{$iface}", $data, 300);
+        }
+    }
 
     # Summary
-    $onelineOutput = trim(shell_exec("$vnstat --oneline b"));
-    $oneline = explode( ';', $onelineOutput );
+    // $onelineOutput = trim(shell_exec("$vnstat --oneline b"));
+    // $oneline = explode( ';', $data[1] );
+    // $summary = $data[1];
+    // exit(var_dump($oneline));
 
     # Days
     // $topCommand = $vnstat . ' t --limit 10';
@@ -90,16 +108,15 @@ if(! $ifstatus) {
 
 <body>
 
-<?php if(count($iflist_arr) > 1): ?>
-<!-- List of Interfaces -->
-<p class="anchors">
-<?php foreach ($iflist_arr as $if): ?>
-<a href="./?if=<?= $if; ?>"><?= $if; ?></a>
-<?php endforeach; ?>
-</p>
-<?php endif; ?>
+<?php
+$otherIfaces = array_diff($iflist_arr, [$iface]);
+$otherIfacesLinks = "&bull; ";
+foreach($otherIfaces as $oIface) {
+    $otherIfacesLinks .= "<a href=\"./?if={$oIface}\">{$oIface}</a> &bull;";
+}
+?>
 
-<h2 id="iftitle">Interface: <u><?= $iface; ?></u></h2>
+    <h2 id="iftitle">Viewing network interface: <span id="current_iface"><?= $iface; ?></span> ( <?= $otherIfacesLinks; ?> )</h2>
 
 <?php if($ifstatus): ?>
 <p class="error">This interface is not monitored by vnstat.</p>
@@ -122,15 +139,15 @@ if(! $ifstatus) {
 <?php
 $created = sprintf(
     '%d-%02d-%02d'
-    , $data->interfaces[0]->created->date->year
-    , $data->interfaces[0]->created->date->month
-    , $data->interfaces[0]->created->date->day
+    , $data[0]->interfaces[0]->created->date->year
+    , $data[0]->interfaces[0]->created->date->month
+    , $data[0]->interfaces[0]->created->date->day
 );
 $updated = sprintf(
     '%d-%02d-%02d'
-    , $data->interfaces[0]->updated->date->year
-    , $data->interfaces[0]->updated->date->month
-    , $data->interfaces[0]->updated->date->day
+    , $data[0]->interfaces[0]->updated->date->year
+    , $data[0]->interfaces[0]->updated->date->month
+    , $data[0]->interfaces[0]->updated->date->day
 );
 ?>
 <table>
@@ -143,21 +160,21 @@ $updated = sprintf(
 </tr>
 <tr>
     <th>Rx:</th>
-    <td><?= human_filesize($oneline[3]); ?></td>
-    <td><?= human_filesize($oneline[8]); ?></td>
-    <td><?= human_filesize($oneline[12]); ?></td>
+    <td><?= human_filesize($data[1][3]); ?></td>
+    <td><?= human_filesize($data[1][8]); ?></td>
+    <td><?= human_filesize($data[1][12]); ?></td>
 </tr>
 <tr>
     <th>Tx:</th>
-    <td><?= human_filesize($oneline[4]); ?></td>
-    <td><?= human_filesize($oneline[9]); ?></td>
-    <td><?= human_filesize($oneline[13]); ?></td>
+    <td><?= human_filesize($data[1][4]); ?></td>
+    <td><?= human_filesize($data[1][9]); ?></td>
+    <td><?= human_filesize($data[1][13]); ?></td>
 </tr>
 <tr>
     <th>Total:</th>
-    <td><?= human_filesize($oneline[5]); ?></td>
-    <td><?= human_filesize($oneline[10]); ?></td>
-    <td><?= human_filesize($oneline[14]); ?></td>
+    <td><?= human_filesize($data[1][5]); ?></td>
+    <td><?= human_filesize($data[1][10]); ?></td>
+    <td><?= human_filesize($data[1][14]); ?></td>
 </tr>
 </table>
 
@@ -170,7 +187,7 @@ $updated = sprintf(
 <th>Transferred</th>
 <th>Total</th>
 </tr>
-<?php foreach ($data->interfaces[0]->traffic->top as $day):
+<?php foreach ($data[0]->interfaces[0]->traffic->top as $day):
 $date = sprintf( '%d-%02d-%02d', $day->date->year, $day->date->month, $day->date->day);
 $rx = ( $day->rx == 0 ) ? '-' :  human_filesize( $day->rx );
 $tx = ( $day->tx == 0 ) ? '-' :  human_filesize( $day->tx );
@@ -194,7 +211,7 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
 <th>Transferred</th>
 <th>Total</th>
 </tr>
-<?php foreach ($data->interfaces[0]->traffic->day as $day):
+<?php foreach ($data[0]->interfaces[0]->traffic->day as $day):
 $date = sprintf( '%d-%02d-%02d', $day->date->year, $day->date->month, $day->date->day);
 $rx = ( $day->rx == 0 ) ? '-' :  human_filesize( $day->rx );
 $tx = ( $day->tx == 0 ) ? '-' :  human_filesize( $day->tx );
@@ -218,7 +235,7 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
 <th>Transferred</th>
 <th>Total</th>
 </tr>
-<?php foreach ($data->interfaces[0]->traffic->month as $month):
+<?php foreach ($data[0]->interfaces[0]->traffic->month as $month):
 $date = sprintf( '%d-%02d', $month->date->year, $month->date->month);
 $rx = ( $month->rx == 0 ) ? '-' :  human_filesize( $month->rx );
 $tx = ( $month->tx == 0 ) ? '-' :  human_filesize( $month->tx );
@@ -242,7 +259,7 @@ $total = ( $month->rx + $month->tx == 0 ) ? '-' : human_filesize( $month->rx + $
 <th>Transferred</th>
 <th>Total</th>
 </tr>
-<?php foreach ($data->interfaces[0]->traffic->hour as $hour):
+<?php foreach ($data[0]->interfaces[0]->traffic->hour as $hour):
 $time = sprintf( '%02d:00', $hour->time->hour );
 $rx = ( $hour->rx == 0 ) ? '-' :  human_filesize( $hour->rx );
 $tx = ( $hour->tx == 0 ) ? '-' :  human_filesize( $hour->tx );

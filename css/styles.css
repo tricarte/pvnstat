@@ -2,7 +2,7 @@ body {
 	max-width: 650px;
 	margin: 40px auto;
 	padding: 0 10px;
-	font: 16px/1.5 -apple-system, BlinkMacSystemFont, "avenir next", avenir, "Segoe UI", "lucida grande", "helvetica neue", helvetica, "Fira Sans", roboto, noto, "Droid Sans", cantarell, oxygen, ubuntu, "franklin gothic medium", "century gothic", "Liberation Sans", sans-serif;
+	font: 14px/1.5 -apple-system, BlinkMacSystemFont, "avenir next", avenir, "Segoe UI", "lucida grande", "helvetica neue", helvetica, "Fira Sans", roboto, noto, "Droid Sans", cantarell, oxygen, ubuntu, "franklin gothic medium", "century gothic", "Liberation Sans", sans-serif;
 	color: #444
 }
 
@@ -27,7 +27,7 @@ h3 {
 
 table {
     width: 100%;
-    margin-bottom: 15px;
+    margin-bottom: 30px;
     /* border: 1px; */
     /* border-style: dashed; */
 }
@@ -39,8 +39,11 @@ th, tr {
 caption {
 /* color: white; */
 /* background-color: grey; */
-text-align: center;
-padding: 5px;
+text-align: left;
+padding: 10px;
+font-weight: bold;
+text-decoration: underline;
+font-size: 18px;
 }
 
 td, th {
@@ -75,6 +78,8 @@ text-align: center;
 /* top: 0; */
 /* background-color: lightgrey; */
 padding: 10px;
+font-size: 19px;
+letter-spacing: 1px;
 }
 
 #iftitle {
@@ -89,4 +94,8 @@ padding: 10px;
 
 .error {
     text-align: center;
+}
+
+#current_iface {
+    color: grey;
 }
