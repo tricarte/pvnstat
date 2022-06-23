@@ -16,7 +16,7 @@ function human_filesize($bytes, $decimals = 2) {
 $iflist_arr = null;
 exec( 'vnstat --iflist 1', $iflist_arr );
 
-# Different versions of vnstat
+# Different versions of vnstat may output different things
 if(str_starts_with($iflist_arr[0], 'Available interfaces:')) {
     $iflist_arr = explode(' ', trim(str_replace('Available interfaces:', '', $iflist_arr[0] )));
 }
@@ -51,50 +51,37 @@ if(! $ifstatus) {
         $output_arr = null;
         exec($vnstat, $output_arr);
 
-        $data[0] = json_decode($output_arr[0]); # --json
+        $data[0] = json_decode($output_arr[0]); # vnstat -i iface --json
 		# Reverse day and hour order ( I like it this way... )
 		$data[0]->interfaces[0]->traffic->day = array_reverse($data[0]->interfaces[0]->traffic->day);
 		$data[0]->interfaces[0]->traffic->hour = array_reverse($data[0]->interfaces[0]->traffic->hour);
 
-        $data[1] = explode( ';', $output_arr[1] ); # --oneline
+        # Filter out hours that are before the last 24 hours
+        $hours = $data[0]->interfaces[0]->traffic->hour;
+        $beginDate = date('Y-m-d H:00', strtotime('-1 day'));
+        $hours_filtered = array_filter($hours, function($h) use ($beginDate) {
+            $hDate = sprintf(
+                '%d-%02d-%02d %02d:%02d'
+                , $h->date->year
+                , $h->date->month
+                , $h->date->day
+                , $h->time->hour
+                , $h->time->minute
+            );
+
+            return $hDate > $beginDate;
+
+        });
+        $data[0]->interfaces[0]->traffic->hour = $hours_filtered;
+
+        $data[1] = explode( ';', $output_arr[1] ); # vnstat -i iface --oneline b
 
         if(apcu_enabled()) {
             apcu_store("vnstat_data_{$iface}", $data, 300);
         }
     }
-
-    # Summary
-    // $onelineOutput = trim(shell_exec("$vnstat --oneline b"));
-    // $oneline = explode( ';', $data[1] );
-    // $summary = $data[1];
-    // exit(var_dump($oneline));
-
-    # Days
-    // $topCommand = $vnstat . ' t --limit 10';
-    // $topOutput = trim(shell_exec( $topCommand ));
-    // $top = json_decode( $topOutput );
-
-    # Last 30 Days
-    # TODO: Highlight the highest value
-    // $daysCommand = $vnstat . ' d --limit 30';
-    // $daysOutput = trim(shell_exec( $daysCommand ));
-    // $days = json_decode( $daysOutput );
-
-    # Last 12 Months
-    // $monthsCommand = $vnstat . ' m --limit 12';
-    // $monthsOutput = trim(shell_exec( $monthsCommand ));
-    // $months = json_decode( $monthsOutput );
-
-    # Last 24 Hours
-    // $beginDate = date('Y-m-d H:00', strtotime('-1 day'));
-    // $hoursCommand = $vnstat . ' h --begin ' . "\"$beginDate\"";
-    // $hoursOutput = trim(shell_exec( $hoursCommand ));
-    // $hours = json_decode( $hoursOutput );
-
-    # TODO: Implement
-    // $yearsCommand = $vnstat . ' y ';
-    // $yearsOutput = trim(shell_exec( $yearsCommand ));
 }
+
 ?>
 <!doctype html>
 
@@ -114,13 +101,16 @@ if(! $ifstatus) {
 
 <?php
 $otherIfaces = array_diff($iflist_arr, [$iface]);
-$otherIfacesLinks = "&bull; ";
+$otherIfacesLinks = "";
 foreach($otherIfaces as $oIface) {
-    $otherIfacesLinks .= "<a href=\"./?if={$oIface}\">{$oIface}</a> &bull;";
+    $otherIfacesLinks .= "<a href=\"./?if={$oIface}\">{$oIface}</a> ";
 }
 ?>
 
-    <h2 id="iftitle">Viewing network interface: <span id="current_iface"><?= $iface; ?></span> ( <?= $otherIfacesLinks; ?> )</h2>
+<div class="header">
+<h2 id="iftitle">Viewing network interface: <span id="current_iface"><?= $iface; ?></h2>
+<p style="text-align: center;">Other Interfaces: <?= $otherIfacesLinks; ?></p>
+</div>
 
 <?php if($ifstatus): ?>
 <p class="error">This interface is not monitored by vnstat.</p>
@@ -137,6 +127,8 @@ foreach($otherIfaces as $oIface) {
 <a href="#months">Months</a>
 &bull;
 <a href="#hours">Hours</a>
+&bull;
+<a href="#years">Years</a>
 </p>
 
 <!-- Summary -->
@@ -287,6 +279,30 @@ $total = ( $hour->rx + $hour->tx == 0 ) ? '-' : human_filesize( $hour->rx + $hou
 </tr>
 <?php endforeach; ?>
 </table> <!-- End of HOURS -->
+
+<!-- YEARS -->
+<table id="years">
+<caption>Years <a href="#top" class="gotop">&uarr;</a></caption>
+<tr>
+<th>Year</th>
+<th>Received</th>
+<th>Transferred</th>
+<th>Total</th>
+</tr>
+<?php
+foreach ($data[0]->interfaces[0]->traffic->year as $year):
+$rx = ( $year->rx == 0 ) ? '-' :  human_filesize( $year->rx );
+$tx = ( $year->tx == 0 ) ? '-' :  human_filesize( $year->tx );
+$total = ( $year->rx + $year->tx == 0 ) ? '-' : human_filesize( $year->rx + $year->tx );
+?>
+<tr>
+    <td><?= $year->date->year; ?></td>
+    <td><?= $rx; ?></td>
+    <td><?= $tx; ?></td>
+    <td><?= $total; ?></td>
+</tr>
+<?php endforeach; ?>
+</table> <!-- End of YEARS -->
 
 <?php endif; # Check current interface is monitored by vnstat ?>
   <!-- <script src="js/scripts.js"></script> -->
