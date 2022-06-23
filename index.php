@@ -52,6 +52,10 @@ if(! $ifstatus) {
         exec($vnstat, $output_arr);
 
         $data[0] = json_decode($output_arr[0]); # --json
+		# Reverse day and hour order ( I like it this way... )
+		$data[0]->interfaces[0]->traffic->day = array_reverse($data[0]->interfaces[0]->traffic->day);
+		$data[0]->interfaces[0]->traffic->hour = array_reverse($data[0]->interfaces[0]->traffic->hour);
+
         $data[1] = explode( ';', $output_arr[1] ); # --oneline
 
         if(apcu_enabled()) {
@@ -149,6 +153,11 @@ $updated = sprintf(
     , $data[0]->interfaces[0]->updated->date->month
     , $data[0]->interfaces[0]->updated->date->day
 );
+$updatedtime = sprintf(
+    '%02d:%02d'
+    , $data[0]->interfaces[0]->updated->time->hour
+    , $data[0]->interfaces[0]->updated->time->minute
+);
 ?>
 <table>
 <caption>Summary <a href="#top" class="gotop">&uarr;</a></caption>
@@ -156,7 +165,7 @@ $updated = sprintf(
     <td></td>
     <th>Today</th>
     <th>This Month</th>
-    <th>All Time<br />( <?=$created;?> - <?=$updated;?> )</th>
+    <th>All Time<br />( <?=$created;?> - <?=$updated,' ',$updatedtime;?> )</th>
 </tr>
 <tr>
     <th>Rx:</th>
@@ -254,18 +263,23 @@ $total = ( $month->rx + $month->tx == 0 ) ? '-' : human_filesize( $month->rx + $
 <table id="hours">
 <caption>Hours <a href="#top" class="gotop">&uarr;</a></caption>
 <tr>
+<th>Date</th>
 <th>Hour</th>
 <th>Received</th>
 <th>Transferred</th>
 <th>Total</th>
 </tr>
-<?php foreach ($data[0]->interfaces[0]->traffic->hour as $hour):
+<?php
+$lastdate = null;
+foreach ($data[0]->interfaces[0]->traffic->hour as $hour):
+$date = sprintf( '%d-%02d-%02d', $hour->date->year, $hour->date->month, $hour->date->day);
 $time = sprintf( '%02d:00', $hour->time->hour );
 $rx = ( $hour->rx == 0 ) ? '-' :  human_filesize( $hour->rx );
 $tx = ( $hour->tx == 0 ) ? '-' :  human_filesize( $hour->tx );
 $total = ( $hour->rx + $hour->tx == 0 ) ? '-' : human_filesize( $hour->rx + $hour->tx );
 ?>
 <tr>
+	<td><?= $lastdate != $date ? $date : ''; $lastdate = $date; ?></td>
     <td><?= $time; ?></td>
     <td><?= $rx; ?></td>
     <td><?= $tx; ?></td>
