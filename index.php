@@ -11,7 +11,6 @@ function human_filesize($bytes, $decimals = 2) {
     return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor];
 }
 
-
 # Interfaces monitored by vnstat
 $iflist_arr = null;
 exec( 'vnstat --iflist 1', $iflist_arr );
@@ -83,6 +82,7 @@ if(! $ifstatus) {
 }
 
 ?>
+
 <!doctype html>
 
 <html lang="en">
@@ -92,8 +92,51 @@ if(! $ifstatus) {
   <title>VNSTAT</title>
   <meta name="description" content="vnStat Statistics">
   <meta name="author" content="tricarte">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- <link rel="stylesheet" href="css/vader.css"> &#60;&#33;&#45;&#45; Sakura - vader theme. No menus &#45;&#45;&#62; -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/holiday.css@0.9.8" /> --> <!-- No full tables -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kimeiga/bahunya/dist/bahunya.min.css"> &#60;&#33;&#45;&#45; sticky menu thing &#45;&#45;&#62; -->
+<!-- <link rel="stylesheet" href="https://unpkg.com/awsm.css/dist/awsm.min.css"> &#60;&#33;&#45;&#45; no full table, good color schemes &#45;&#45;&#62; -->
+  <!-- <link rel="stylesheet" href="css/midnight-green.css"> &#45;&#45;&#62; Should be improved -->
+<!-- <link rel="stylesheet" href="https://unpkg.com/mvp.css"> Expects links to be direct child of nav. uses flex wherever possible. can be studied. -->
+<!-- <link rel="stylesheet" href="https://unpkg.com/bamboo.css/dist/dark.min.css"> -->
+<!-- <link rel="stylesheet" href="https://davidpaulsson.github.io/no-class/css/no-class.min.css" type="text/css"> no idea -->
+<!-- <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.classless.min.css" type="text/css"> tables look so dull -->
+<!-- <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css"> tables look big on small screens, good header -->
+<!-- <link rel="stylesheet" href="https://classless.de/classless.css"> nav menu goes to top but no sticky -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/andrewh0/okcss@1/dist/ok.min.css" /> simple -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css"> -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/dark.css"> -->
+<link rel="stylesheet" href="./css/watercss-dark.min.css">
+  <!-- <link rel="stylesheet" href="css/yamb.min.css"> Can be used as a template for a project. Needs a class to center main div. Good looking style, print stylesheet, dark-prefers -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/spcss@0.8.0"> too simple -->
+
+<style>
+section {
+/* padding: 20px; */
+padding: 1rem;
+}
+
+header h2, header p {
+text-align: center;
+}
+
+nav {
+    display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+}
+
+footer {
+    text-align: center;
+}
+
+td {
+font-size: 0.9em;
+}
+
+</style>
 
 </head>
 
@@ -101,37 +144,40 @@ if(! $ifstatus) {
 
 <?php
 $otherIfaces = array_diff($iflist_arr, [$iface]);
-$otherIfacesLinks = "";
+$otherIfacesLinks = [];
 foreach($otherIfaces as $oIface) {
-    $otherIfacesLinks .= "<a href=\"./?if={$oIface}\">{$oIface}</a> ";
+    $otherIfacesLinks[] = "<a href=\"./?if={$oIface}\">{$oIface}</a>";
 }
 ?>
 
-<div class="header">
-<h2 id="iftitle">Viewing network interface: <span id="current_iface"><?= $iface; ?></h2>
-<p style="text-align: center;">Other Interfaces: <?= $otherIfacesLinks; ?></p>
-</div>
-
-<?php if($ifstatus): ?>
-<p class="error">This interface is not monitored by vnstat.</p>
-<?php else: # Begin the rendering ?>
+<header>
+<h2 id="iftitle">Viewing network interface: <mark id="current_iface"><?= $iface; ?></mark></h2>
+<?php if(! empty($otherIfacesLinks)): ?>
+<p>Other Interfaces: <?= implode(' ', $otherIfacesLinks); ?></p>
+<?php endif; ?>
 
 <!-- Links to tables -->
-<p class="anchors">
+<?php if(! $ifstatus): ?>
+<nav>
 <a href="#summary">Summary</a>
-&bull;
 <a href="#topdays">Top</a>
-&bull;
 <a href="#days">Days</a>
-&bull;
 <a href="#months">Months</a>
-&bull;
 <a href="#hours">Hours</a>
-&bull;
 <a href="#years">Years</a>
-</p>
+</nav>
+<?php endif; ?>
+<hr />
+</header>
+
+<main>
+<?php if($ifstatus): ?>
+<p>Interface <mark><?= $iface; ?></mark> is not monitored by vnstat.</p>
+<?php else: # Begin the rendering ?>
+
 
 <!-- Summary -->
+<section>
 <?php
 $created = sprintf(
     '%d-%02d-%02d'
@@ -152,7 +198,7 @@ $updatedtime = sprintf(
 );
 ?>
 <table>
-<caption>Summary <a href="#top" class="gotop">&uarr;</a></caption>
+<caption><mark>Summary</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
 <tr>
     <td></td>
     <th>Today</th>
@@ -178,10 +224,12 @@ $updatedtime = sprintf(
     <td><?= human_filesize($data[1][14]); ?></td>
 </tr>
 </table>
+</section>
 
 <!-- TOP 10 DAYS -->
+<section>
 <table id="topdays">
-<caption>Top Days <a href="#top" class="gotop">&uarr;</a></caption>
+<caption><mark>Top Days</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
 <tr>
 <th>Day</th>
 <th>Received</th>
@@ -202,10 +250,12 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
 </tr>
 <?php endforeach; ?>
 </table> <!-- End of TOP 10 DAYS -->
+</section>
 
 <!-- Last 30 Days -->
+<section>
 <table id="days">
-<caption>Days <a href="#top" class="gotop">&uarr;</a></caption>
+<caption><mark>Days</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
 <tr>
 <th>Day</th>
 <th>Received</th>
@@ -226,10 +276,12 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
 </tr>
 <?php endforeach; ?>
 </table> <!-- End of Last 30 Days -->
+</section>
 
 <!-- MONTHS -->
+<section>
 <table id="months">
-<caption>Months <a href="#top" class="gotop">&uarr;</a></caption>
+<caption><mark>Months</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
 <tr>
 <th>Month</th>
 <th>Received</th>
@@ -250,10 +302,12 @@ $total = ( $month->rx + $month->tx == 0 ) ? '-' : human_filesize( $month->rx + $
 </tr>
 <?php endforeach; ?>
 </table> <!-- End of MONTHS -->
+</section>
 
 <!-- HOURS -->
+<section>
 <table id="hours">
-<caption>Hours <a href="#top" class="gotop">&uarr;</a></caption>
+<caption><mark>Hours</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
 <tr>
 <th>Date</th>
 <th>Hour</th>
@@ -279,10 +333,12 @@ $total = ( $hour->rx + $hour->tx == 0 ) ? '-' : human_filesize( $hour->rx + $hou
 </tr>
 <?php endforeach; ?>
 </table> <!-- End of HOURS -->
+</section>
 
 <!-- YEARS -->
+<section>
 <table id="years">
-<caption>Years <a href="#top" class="gotop">&uarr;</a></caption>
+<caption><mark>Years</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
 <tr>
 <th>Year</th>
 <th>Received</th>
@@ -303,8 +359,15 @@ $total = ( $year->rx + $year->tx == 0 ) ? '-' : human_filesize( $year->rx + $yea
 </tr>
 <?php endforeach; ?>
 </table> <!-- End of YEARS -->
+</section>
 
-<?php endif; # Check current interface is monitored by vnstat ?>
   <!-- <script src="js/scripts.js"></script> -->
+<?php endif; # Check current interface is monitored by vnstat ?>
+</main>
+
+<footer>
+<small>vnStat</small>
+</footer>
+
 </body>
 </html>
