@@ -233,7 +233,7 @@ $updatedtime = sprintf(
 <table>
 <thead>
 <tr>
-<th>Interface Creation Date</th>
+<th>Monitoring Since</th>
 <th>Last Update</th>
 </tr>
 </thead>
