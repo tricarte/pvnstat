@@ -1,4 +1,44 @@
 <?php
+# https://www.php.net/manual/tr/function.date-diff.php#115065
+function dateDifference($date_1 , $date_2)
+{
+    $datetime1 = date_create($date_1);
+    $datetime2 = date_create($date_2);
+
+    $interval = date_diff($datetime1, $datetime2);
+    $formatArr = [];
+
+    switch($interval->y) {
+        case 0:
+            break;
+        case 1:
+            $formatArr[] = '%y Year';
+        default:
+            $formatArr[] = '%y Years';
+    }
+
+    switch($interval->m) {
+        case 0:
+            break;
+        case 1:
+            $formatArr[] = '%m month';
+        default:
+            $formatArr[] = '%m months';
+    }
+
+    switch($interval->d) {
+        case 0:
+            break;
+        case 1:
+            $formatArr[] = '%d day';
+        default:
+            $formatArr[] = '%d days';
+    }
+
+    return $interval->format(implode(' ', $formatArr));
+
+}
+
 if(! function_exists('str_starts_with')) {
     function str_starts_with($haystack, $needle) {
         return strpos($haystack, $needle) === 0 ? true : false;
@@ -21,7 +61,7 @@ if(str_starts_with($iflist_arr[0], 'Available interfaces:')) {
 }
 
 # Get the currently active interface this system uses
-if( 'Linux' == PHP_OS && ! isset($_REQUEST['if']) ) {
+if( ! isset($_REQUEST['if']) ) {
     $activeiface = trim(shell_exec( 'ip route | grep default | cut -d" " -f5' ));
     if(! in_array($activeiface, $iflist_arr)) {
         $activeiface = null;
@@ -81,6 +121,13 @@ if(! $ifstatus) {
     }
 }
 
+# Create links to other interfaces other than current one.
+$otherIfaces = array_diff($iflist_arr, [$iface]);
+$otherIfacesLinks = [];
+foreach($otherIfaces as $oIface) {
+    $otherIfacesLinks[] = "<a href=\"./?if={$oIface}\">{$oIface}</a>";
+}
+
 ?>
 
 <!doctype html>
@@ -89,37 +136,22 @@ if(! $ifstatus) {
 <head>
   <meta charset="utf-8">
 
-  <title>VNSTAT</title>
-  <meta name="description" content="vnStat Statistics">
+  <title>Bandwidth Usage - vnStat</title>
+  <meta name="description" content="Bandwidth usage using vnStat data">
   <meta name="author" content="tricarte">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- <link rel="stylesheet" href="css/vader.css"> &#60;&#33;&#45;&#45; Sakura - vader theme. No menus &#45;&#45;&#62; -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/holiday.css@0.9.8" /> --> <!-- No full tables -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kimeiga/bahunya/dist/bahunya.min.css"> &#60;&#33;&#45;&#45; sticky menu thing &#45;&#45;&#62; -->
-<!-- <link rel="stylesheet" href="https://unpkg.com/awsm.css/dist/awsm.min.css"> &#60;&#33;&#45;&#45; no full table, good color schemes &#45;&#45;&#62; -->
-  <!-- <link rel="stylesheet" href="css/midnight-green.css"> &#45;&#45;&#62; Should be improved -->
-<!-- <link rel="stylesheet" href="https://unpkg.com/mvp.css"> Expects links to be direct child of nav. uses flex wherever possible. can be studied. -->
-<!-- <link rel="stylesheet" href="https://unpkg.com/bamboo.css/dist/dark.min.css"> -->
-<!-- <link rel="stylesheet" href="https://davidpaulsson.github.io/no-class/css/no-class.min.css" type="text/css"> no idea -->
-<!-- <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.classless.min.css" type="text/css"> tables look so dull -->
-<!-- <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css"> tables look big on small screens, good header -->
-<!-- <link rel="stylesheet" href="https://classless.de/classless.css"> nav menu goes to top but no sticky -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/andrewh0/okcss@1/dist/ok.min.css" /> simple -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css"> -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/dark.css"> -->
 <link rel="stylesheet" href="./css/watercss-dark.min.css">
-  <!-- <link rel="stylesheet" href="css/yamb.min.css"> Can be used as a template for a project. Needs a class to center main div. Good looking style, print stylesheet, dark-prefers -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/spcss@0.8.0"> too simple -->
 
 <style>
+
 section {
-/* padding: 20px; */
-padding: 1rem;
+    padding: 0.1rem;
+    margin-top: 2.0rem;
 }
 
 header h2, header p {
-text-align: center;
+    text-align: center;
 }
 
 nav {
@@ -128,12 +160,21 @@ nav {
     flex-wrap: wrap;
 }
 
+nav a {
+    text-decoration: underline;
+}
+
 footer {
     text-align: center;
 }
 
 td {
-font-size: 0.9em;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+table td.date {
+    text-align: center;
 }
 
 </style>
@@ -141,14 +182,6 @@ font-size: 0.9em;
 </head>
 
 <body>
-
-<?php
-$otherIfaces = array_diff($iflist_arr, [$iface]);
-$otherIfacesLinks = [];
-foreach($otherIfaces as $oIface) {
-    $otherIfacesLinks[] = "<a href=\"./?if={$oIface}\">{$oIface}</a>";
-}
-?>
 
 <header>
 <h2 id="iftitle">Viewing network interface: <mark id="current_iface"><?= $iface; ?></mark></h2>
@@ -167,7 +200,6 @@ foreach($otherIfaces as $oIface) {
 <a href="#years">Years</a>
 </nav>
 <?php endif; ?>
-<hr />
 </header>
 
 <main>
@@ -175,10 +207,8 @@ foreach($otherIfaces as $oIface) {
 <p>Interface <mark><?= $iface; ?></mark> is not monitored by vnstat.</p>
 <?php else: # Begin the rendering ?>
 
-
-<!-- Summary -->
-<section>
 <?php
+// All time period
 $created = sprintf(
     '%d-%02d-%02d'
     , $data[0]->interfaces[0]->created->date->year
@@ -197,13 +227,34 @@ $updatedtime = sprintf(
     , $data[0]->interfaces[0]->updated->time->minute
 );
 ?>
+
+<!-- Date Time Info -->
+<section>
 <table>
+<thead>
+<tr>
+<th>Interface Creation Date</th>
+<th>Last Update</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><?=$created;?><br /><small><mark><?=dateDifference($updated, $created);?></mark></small></td>
+<td><?=$updated?><br /><small><mark><?=$updatedtime;?></mark></small></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<!-- Summary -->
+<section>
+<table id="summary">
 <caption><mark>Summary</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
 <tr>
     <td></td>
     <th>Today</th>
     <th>This Month</th>
-    <th>All Time<br />( <?=$created;?> - <?=$updated,' ',$updatedtime;?> )</th>
+    <th>All Time</th>
 </tr>
 <tr>
     <th>Rx:</th>
@@ -230,12 +281,15 @@ $updatedtime = sprintf(
 <section>
 <table id="topdays">
 <caption><mark>Top Days</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
+<thead>
 <tr>
 <th>Day</th>
-<th>Received</th>
-<th>Transferred</th>
+<th>Rx</th>
+<th>Tx</th>
 <th>Total</th>
 </tr>
+</thead>
+<tbody>
 <?php foreach ($data[0]->interfaces[0]->traffic->top as $day):
 $date = sprintf( '%d-%02d-%02d', $day->date->year, $day->date->month, $day->date->day);
 $rx = ( $day->rx == 0 ) ? '-' :  human_filesize( $day->rx );
@@ -249,6 +303,7 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
     <td><?= $total; ?></td>
 </tr>
 <?php endforeach; ?>
+</tbody>
 </table> <!-- End of TOP 10 DAYS -->
 </section>
 
@@ -256,12 +311,15 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
 <section>
 <table id="days">
 <caption><mark>Days</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
+<thead>
 <tr>
 <th>Day</th>
-<th>Received</th>
-<th>Transferred</th>
+<th>Rx</th>
+<th>Tx</th>
 <th>Total</th>
 </tr>
+</thead>
+<tbody>
 <?php foreach ($data[0]->interfaces[0]->traffic->day as $day):
 $date = sprintf( '%d-%02d-%02d', $day->date->year, $day->date->month, $day->date->day);
 $rx = ( $day->rx == 0 ) ? '-' :  human_filesize( $day->rx );
@@ -275,6 +333,7 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
     <td><?= $total; ?></td>
 </tr>
 <?php endforeach; ?>
+</tbody>
 </table> <!-- End of Last 30 Days -->
 </section>
 
@@ -282,12 +341,15 @@ $total = ( $day->rx + $day->tx == 0 ) ? '-' : human_filesize( $day->rx + $day->t
 <section>
 <table id="months">
 <caption><mark>Months</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
+<thead>
 <tr>
 <th>Month</th>
-<th>Received</th>
-<th>Transferred</th>
+<th>Rx</th>
+<th>Tx</th>
 <th>Total</th>
 </tr>
+</thead>
+<tbody>
 <?php foreach ($data[0]->interfaces[0]->traffic->month as $month):
 $date = sprintf( '%d-%02d', $month->date->year, $month->date->month);
 $rx = ( $month->rx == 0 ) ? '-' :  human_filesize( $month->rx );
@@ -301,6 +363,7 @@ $total = ( $month->rx + $month->tx == 0 ) ? '-' : human_filesize( $month->rx + $
     <td><?= $total; ?></td>
 </tr>
 <?php endforeach; ?>
+</tbody>
 </table> <!-- End of MONTHS -->
 </section>
 
@@ -308,13 +371,15 @@ $total = ( $month->rx + $month->tx == 0 ) ? '-' : human_filesize( $month->rx + $
 <section>
 <table id="hours">
 <caption><mark>Hours</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
+<thead>
 <tr>
-<th>Date</th>
 <th>Hour</th>
-<th>Received</th>
-<th>Transferred</th>
+<th>Rx</th>
+<th>Tx</th>
 <th>Total</th>
 </tr>
+</thead>
+<tbody>
 <?php
 $lastdate = null;
 foreach ($data[0]->interfaces[0]->traffic->hour as $hour):
@@ -325,13 +390,18 @@ $tx = ( $hour->tx == 0 ) ? '-' :  human_filesize( $hour->tx );
 $total = ( $hour->rx + $hour->tx == 0 ) ? '-' : human_filesize( $hour->rx + $hour->tx );
 ?>
 <tr>
-	<td><?= $lastdate != $date ? $date : ''; $lastdate = $date; ?></td>
+<?php
+if ( $lastdate != $date ): ?>
+    <td colspan="4" class="date"><?= $date; ?></td>
+</tr>
+<?php endif; $lastdate = $date; ?>
     <td><?= $time; ?></td>
     <td><?= $rx; ?></td>
     <td><?= $tx; ?></td>
     <td><?= $total; ?></td>
 </tr>
 <?php endforeach; ?>
+</tbody>
 </table> <!-- End of HOURS -->
 </section>
 
@@ -339,12 +409,15 @@ $total = ( $hour->rx + $hour->tx == 0 ) ? '-' : human_filesize( $hour->rx + $hou
 <section>
 <table id="years">
 <caption><mark>Years</mark> <small><a href="#top" class="gotop">[Top]</a></small></caption>
+<thead>
 <tr>
 <th>Year</th>
-<th>Received</th>
-<th>Transferred</th>
+<th>Rx</th>
+<th>Tx</th>
 <th>Total</th>
 </tr>
+</thead>
+<tbody>
 <?php
 foreach ($data[0]->interfaces[0]->traffic->year as $year):
 $rx = ( $year->rx == 0 ) ? '-' :  human_filesize( $year->rx );
@@ -358,10 +431,10 @@ $total = ( $year->rx + $year->tx == 0 ) ? '-' : human_filesize( $year->rx + $yea
     <td><?= $total; ?></td>
 </tr>
 <?php endforeach; ?>
+</tbody>
 </table> <!-- End of YEARS -->
 </section>
 
-  <!-- <script src="js/scripts.js"></script> -->
 <?php endif; # Check current interface is monitored by vnstat ?>
 </main>
 
