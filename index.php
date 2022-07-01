@@ -13,6 +13,7 @@ function dateDifference($date_1 , $date_2)
             break;
         case 1:
             $formatArr[] = '%y Year';
+            break;
         default:
             $formatArr[] = '%y Years';
     }
@@ -22,6 +23,7 @@ function dateDifference($date_1 , $date_2)
             break;
         case 1:
             $formatArr[] = '%m month';
+            break;
         default:
             $formatArr[] = '%m months';
     }
@@ -31,6 +33,7 @@ function dateDifference($date_1 , $date_2)
             break;
         case 1:
             $formatArr[] = '%d day';
+            break;
         default:
             $formatArr[] = '%d days';
     }
@@ -162,6 +165,12 @@ nav {
 
 nav a {
     text-decoration: underline;
+}
+
+nav a:hover {
+    text-decoration: none;
+    color: var(--highlight);
+    font-weight: bold;
 }
 
 footer {
