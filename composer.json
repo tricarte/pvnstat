@@ -1,0 +1,13 @@
+{
+    "require-dev": {
+        "laravel/pint": "^1.0"
+    },
+    "scripts": {
+        "csfix": "vendor/bin/pint --config pint.json"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tricarte\\Pvnstat\\": ["src/"]
+        }
+    }
+}
