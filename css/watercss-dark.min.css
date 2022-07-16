@@ -418,10 +418,10 @@ table {
     width: 100%;
     table-layout: fixed;
 }
-table caption,
+table,
 td,
 th {
-    text-align: left;
+    text-align: center;
 }
 td,
 th {
@@ -605,6 +605,26 @@ body > footer {
     }
 }
 
+/* lato-regular - latin */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  src: local(''),
+       url('../fonts/lato-v23-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('../fonts/lato-v23-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* lato-700 - latin */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: local(''),
+       url('../fonts/lato-v23-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('../fonts/lato-v23-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
 html {
     scroll-behavior: smooth;
 }
@@ -656,8 +676,15 @@ nav a:hover {
     font-weight: bold;
 }
 
-footer {
+.t_info th,
+.t_info td {
     text-align: center;
+}
+
+table td.date {
+    text-align: center;
+    background-color: #55304d !important;
+    border-right: 1px solid var(--border);
 }
 
 td {
@@ -665,15 +692,16 @@ td {
     white-space: nowrap;
 }
 
+tbody {
+    border: 1px solid var(--border);
+}
+
 /* thead tr th:first-child, */
 tbody tr td:first-child {
     /* border-right: 1px solid var(--highlight); */
     /* text-align: center; */
     background-color: var(--border);
-}
 
-table td.date {
-    text-align: center;
 }
 
 /* .box { */
@@ -684,16 +712,15 @@ table td.date {
     text-align: center;
 }
 
+table caption{
+    text-align: left;
+}
+
 .t_info {
     width: 60%;
     margin: 0 auto;
 }
 
-.t_info th,
-.t_info td {
+footer {
     text-align: center;
-}
-
-tbody {
-    border: 1px solid var(--border);
 }

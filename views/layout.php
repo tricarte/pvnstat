@@ -168,7 +168,8 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                             <tr>
                                 <?php
                                 if ($lastdate !== $date) { ?>
-                                    <td colspan="4" class="date"><?= $date ?></td>
+                                    <td class="date"><?= $date ?></td>
+                                    <td colspan="3"></td>
                             </tr>
                         <?php }
         $lastdate = $date; ?>

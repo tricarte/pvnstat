@@ -7,7 +7,7 @@ namespace Tricarte\Pvnstat\Helpers;
 class Template {
     protected $viewVars;
 
-    public function renderPage(string $tpl): string {
+    public function renderPage(string $tpl): bool {
         \ob_start();
         \extract($this->viewVars, \EXTR_SKIP);
         include 'views/' . $tpl;
