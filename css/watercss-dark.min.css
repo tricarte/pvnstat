@@ -630,11 +630,7 @@ html {
 }
 
 body {
-    /* font-family: "Iosevka Term"; */
     font-family: "Lato";
-    /* font-family: "Manjari"; */
-    /* font-family: "Rachana"; */
-    /* font-family: "Ubuntu Mono"; */
 }
 
 section {
@@ -663,8 +659,7 @@ nav a {
     flex: 1;
     outline: none;
     text-decoration: underline;
-    /* border-bottom: 1px solid; */
-    padding: 2px 1px 0;
+    padding: 2px 5px 2px 5px;
     text-align: center;
     line-height: 3;
     font-size: 1.2rem;
@@ -696,17 +691,10 @@ tbody {
     border: 1px solid var(--border);
 }
 
-/* thead tr th:first-child, */
 tbody tr td:first-child {
-    /* border-right: 1px solid var(--highlight); */
-    /* text-align: center; */
     background-color: var(--border);
 
 }
-
-/* .box { */
-/*     background-color: var(--border); */
-/* } */
 
 .s_info {
     text-align: center;
@@ -717,7 +705,6 @@ table caption{
 }
 
 .t_info {
-    width: 60%;
     margin: 0 auto;
 }
 
