@@ -57,8 +57,8 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                     </thead>
                     <tbody>
                         <tr>
-                            <td><?= $date_time_info['created'] ?><br><small><mark><?= U::dateDifference($date_time_info['updated'], $date_time_info['created']) ?></mark></small></td>
-                            <td><?= $date_time_info['updated'] ?><br><small><mark><?= $date_time_info['updated_time'] ?></mark></small></td>
+                            <td><?= $created ?><br><small><mark><?= U::dateDifference($updated, $created) ?></mark></small></td>
+                            <td><?= $updated ?><br><small><mark><?= $updated_time ?></mark></small></td>
                         </tr>
                     </tbody>
                 </table>

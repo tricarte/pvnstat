@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 require __DIR__ . '/vendor/autoload.php';
 
-use Tricarte\Pvnstat\Helpers\Template;
 use Tricarte\Pvnstat\Helpers\Utils as U;
 
 // Interfaces monitored by vnstat
@@ -119,18 +118,4 @@ $updated_time = sprintf(
     $data[0]->interfaces[0]->updated->time->minute
 );
 
-$template = new Template();
-
-$template->assign([
-    'iface'              => $iface,
-    'other_ifaces_links' => $other_ifaces_links,
-    'is_monitored'       => $is_monitored,
-    'date_time_info'     => [
-        'created'      => $created,
-        'updated'      => $updated,
-        'updated_time' => $updated_time,
-    ],
-    'data' => $data,
-]);
-
-$template->renderPage('layout.php');
+include 'views/layout.php';
