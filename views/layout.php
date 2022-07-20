@@ -23,13 +23,9 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
 <body>
 
     <header>
-        <h2 id="iftitle">Viewing network interface: <mark id="current_iface"><?= $iface ?></mark></h2>
-        <?php if (! empty($other_ifaces_links)) { ?>
-            <p>Other Interfaces: <?= implode(' ', $other_ifaces_links) ?></p>
-        <?php } ?>
 
         <!-- Links to tables -->
-        <?php if ($is_monitored) { ?>
+        <?php if ($v->is_monitored) { ?>
             <nav>
                 <a href="#summary">Summary</a>
                 <a href="#topdays">Top</a>
@@ -39,11 +35,17 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                 <a href="#years">Years</a>
             </nav>
         <?php } ?>
+
+        <h2 id="iftitle">Viewing network interface: <mark id="current_iface"><?= $v->iface ?></mark></h2>
+        <?php if (! empty($v->other_ifaces_links)) { ?>
+            <p>Switch interface: <?= implode(' ', $v->other_ifaces_links) ?></p>
+        <?php } ?>
+
     </header>
 
     <main>
-        <?php if (! $is_monitored) { ?>
-            <p>Interface <mark><?= $iface ?></mark> is not monitored by vnstat.</p>
+        <?php if (! $v->is_monitored) { ?>
+            <p>Interface <mark><?= $v->iface ?></mark> is not monitored by vnstat.</p>
 		<?php } else { // Begin the rendering?>
 
             <!-- Date Time Info -->
@@ -57,8 +59,8 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                     </thead>
                     <tbody>
                         <tr>
-                            <td><?= $created ?><br><small><mark><?= U::dateDifference($updated, $created) ?></mark></small></td>
-                            <td><?= $updated ?><br><small><mark><?= $updated_time ?></mark></small></td>
+                            <td><?= $v->created ?><br><small><mark><?= U::dateDifference($v->updated, $v->created) ?></mark></small></td>
+                            <td><?= $v->updated ?><br><small><mark><?= $v->updated_time ?></mark></small></td>
                         </tr>
                     </tbody>
                 </table>
@@ -81,21 +83,21 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                     <tbody>
                         <tr>
                             <th scope="row">Rx:</th>
-                            <td><?= U::humanFilesize((int) $data[1][3]) ?></td>
-                            <td><?= U::humanFilesize((int) $data[1][8]) ?></td>
-                            <td><?= U::humanFilesize((int) $data[1][12]) ?></td>
+                            <td><?= U::humanFilesize((int) $v->data[1][3]) ?></td>
+                            <td><?= U::humanFilesize((int) $v->data[1][8]) ?></td>
+                            <td><?= U::humanFilesize((int) $v->data[1][12]) ?></td>
                         </tr>
                         <tr>
                             <th scope="row">Tx:</th>
-                            <td><?= U::humanFilesize((int) $data[1][4]) ?></td>
-                            <td><?= U::humanFilesize((int) $data[1][9]) ?></td>
-                            <td><?= U::humanFilesize((int) $data[1][13]) ?></td>
+                            <td><?= U::humanFilesize((int) $v->data[1][4]) ?></td>
+                            <td><?= U::humanFilesize((int) $v->data[1][9]) ?></td>
+                            <td><?= U::humanFilesize((int) $v->data[1][13]) ?></td>
                         </tr>
                         <tr>
                             <th scope="row">Total:</th>
-                            <td><?= U::humanFilesize((int) $data[1][5]) ?></td>
-                            <td><?= U::humanFilesize((int) $data[1][10]) ?></td>
-                            <td><?= U::humanFilesize((int) $data[1][14]) ?></td>
+                            <td><?= U::humanFilesize((int) $v->data[1][5]) ?></td>
+                            <td><?= U::humanFilesize((int) $v->data[1][10]) ?></td>
+                            <td><?= U::humanFilesize((int) $v->data[1][14]) ?></td>
                         </tr>
                     </tbody>
                 </table>
@@ -117,7 +119,7 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                     </thead>
                     <tbody>
                         <?php
-                        foreach ($data[0]->interfaces[0]->traffic->top as $day) {
+                        foreach ($v->data[0]->interfaces[0]->traffic->top as $day) {
                             $date = sprintf(
                                 '%d-%02d-%02d',
                                 $day->date->year,
@@ -154,7 +156,7 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                     <tbody>
                         <?php
                         $lastdate = null;
-    foreach ($data[0]->interfaces[0]->traffic->hour as $hour) {
+    foreach ($v->data[0]->interfaces[0]->traffic->hour as $hour) {
         $date = sprintf(
             '%d-%02d-%02d',
             $hour->date->year,
@@ -198,7 +200,7 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                     </thead>
                     <tbody>
                         <?php
-                        foreach ($data[0]->interfaces[0]->traffic->day as $day) {
+                        foreach ($v->data[0]->interfaces[0]->traffic->day as $day) {
                             $date = sprintf(
                                 '%d-%02d-%02d',
                                 $day->date->year,
@@ -234,7 +236,7 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                     </thead>
                     <tbody>
                         <?php
-                        foreach ($data[0]->interfaces[0]->traffic->month as $month) {
+                        foreach ($v->data[0]->interfaces[0]->traffic->month as $month) {
                             $date = sprintf(
                                 '%d-%02d',
                                 $month->date->year,
@@ -269,7 +271,7 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                     </thead>
                     <tbody>
                         <?php
-                        foreach ($data[0]->interfaces[0]->traffic->year as $year) {
+                        foreach ($v->data[0]->interfaces[0]->traffic->year as $year) {
                             $rx    = (0 === $year->rx) ? '-' : U::humanFilesize($year->rx);
                             $tx    = (0 === $year->tx) ? '-' : U::humanFilesize($year->tx);
                             $total = (0 === $year->rx + $year->tx) ? '-' : U::humanFilesize($year->rx + $year->tx); ?>

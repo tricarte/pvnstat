@@ -631,6 +631,8 @@ html {
 
 body {
     font-family: "Lato";
+    padding: unset;
+    margin-top: 0px;
 }
 
 section {
@@ -649,6 +651,11 @@ header p {
 }
 
 nav {
+    background-color: #024955;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    /* border-bottom: 2px solid #7ab05b; */
+    /* border: 1px solid var(--border); */
     display: flex;
     justify-content: space-evenly;
     flex-wrap: wrap;
@@ -658,11 +665,12 @@ nav {
 nav a {
     flex: 1;
     outline: none;
-    text-decoration: underline;
+    /* text-decoration: underline; */
     padding: 2px 5px 2px 5px;
     text-align: center;
-    line-height: 3;
-    font-size: 1.2rem;
+    line-height: 2;
+    /* font-size: 1.2rem; */
+    color: #dcf5e2;
 }
 
 nav a:hover {
@@ -671,15 +679,38 @@ nav a:hover {
     font-weight: bold;
 }
 
+.t_info {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.t_info tr td:first-child {
+    background-color: #a84176;
+    color: var(--text-main);
+}
+
+.t_info tr td:last-child {
+    background-color: #55304d;
+}
+
 .t_info th,
 .t_info td {
     text-align: center;
 }
 
-table td.date {
-    text-align: center;
-    background-color: #55304d !important;
-    border-right: 1px solid var(--border);
+th[scope="row"] {
+    /* background-color: var(--background); */
+    background-color: var(--background);
+    /* background-color: var(--background-body); */
+    text-align: right;
+}
+
+table {
+    border-collapse:unset;
+}
+
+th {
+    color: #d2bf54;
 }
 
 td {
@@ -689,11 +720,19 @@ td {
 
 tbody {
     border: 1px solid var(--border);
+    background-color: #49646c;
 }
 
 tbody tr td:first-child {
     background-color: var(--border);
+    background-color: #c8ba4f;
+    color: #111;
+}
 
+#hours td.date {
+    text-align: center;
+    background-color: #eede5f !important;
+    /* border-right: 1px solid var(--border); */
 }
 
 .s_info {
@@ -704,10 +743,13 @@ table caption{
     text-align: left;
 }
 
-.t_info {
-    margin: 0 auto;
-}
 
 footer {
     text-align: center;
+}
+
+caption {
+    /* background-color: #fff; */
+    border-bottom: 2px dotted #7ab05b;
+    padding: 5px;
 }

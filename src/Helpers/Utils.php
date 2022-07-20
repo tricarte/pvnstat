@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tricarte\Pvnstat\Helpers;
 
+use Tricarte\Pvnstat\Vnstat;
+
 class Utils {
     /**
      * Format date difference in human readable form.
@@ -71,9 +73,12 @@ class Utils {
      */
     public static function humanFilesize(int $bytes, int $decimals = 2): string {
         $sz     = 'BKMGTP';
+        // $sz     = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB' ];
         $factor = \floor((\mb_strlen((string) $bytes) - 1) / 3);
 
-        return \sprintf("%.{$decimals}f", $bytes / \pow(1024, $factor))
+        return  \sprintf("%.{$decimals}f", $bytes / \pow(1024, $factor))
             . @$sz[$factor];
+
     }
+
 }
