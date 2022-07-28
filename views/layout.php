@@ -38,7 +38,7 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
 
         <h2 id="iftitle">Viewing network interface: <mark id="current_iface"><?= $v->iface ?></mark></h2>
         <?php if (! empty($v->other_ifaces_links)) { ?>
-            <p>Switch interface: <?= implode(' ', $v->other_ifaces_links) ?></p>
+            <p>or switch interface: <?= implode(' ', $v->other_ifaces_links) ?></p>
         <?php } ?>
 
     </header>

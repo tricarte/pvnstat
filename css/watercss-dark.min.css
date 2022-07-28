@@ -633,6 +633,7 @@ body {
     font-family: "Lato";
     padding: unset;
     margin-top: 0px;
+    line-height: 1.2
 }
 
 section {
@@ -714,7 +715,7 @@ th {
 }
 
 td {
-    font-size: 0.9em;
+    font-size: 0.85em;
     white-space: nowrap;
 }
 
@@ -752,4 +753,13 @@ caption {
     /* background-color: #fff; */
     border-bottom: 2px dotted #7ab05b;
     padding: 5px;
+}
+
+#iftitle {
+    color: #e1e1e1;
+    font-size: 38px;
+    font-weight: 800;
+    font-style: normal;
+    letter-spacing: -0.039em;
+    line-height: 45px;
 }
