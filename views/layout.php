@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use Tricarte\Pvnstat\Helpers\Utils as U;
 
@@ -16,7 +18,38 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
     <meta name="author" content="tricarte">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link rel="preload" href="./css/watercss-dark.min.css" as="style">
+    <link rel="preload" href="./fonts/lato-v23-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="./fonts/lato-v23-latin-700.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="./css/watercss-dark.min.css">
+
+    <style>
+        /* lato-regular - latin */
+        @font-face {
+            font-family: 'Lato';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: local(''),
+                url('./fonts/lato-v23-latin-regular.woff2') format('woff2'),
+                /* Chrome 26+, Opera 23+, Firefox 39+ */
+                url('./fonts/lato-v23-latin-regular.woff') format('woff');
+            /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+        }
+
+        /* lato-700 - latin */
+        @font-face {
+            font-family: 'Lato';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: local(''),
+                url('./fonts/lato-v23-latin-700.woff2') format('woff2'),
+                /* Chrome 26+, Opera 23+, Firefox 39+ */
+                url('./fonts/lato-v23-latin-700.woff') format('woff');
+            /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+        }
+    </style>
 
 </head>
 
@@ -37,16 +70,17 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
         <?php } ?>
 
         <h2 id="iftitle">Viewing network interface: <mark id="current_iface"><?= $v->iface ?></mark></h2>
-        <?php if (! empty($v->other_ifaces_links)) { ?>
+        <?php if (!empty($v->other_ifaces_links)) { ?>
             <p>or switch interface: <?= implode(' ', $v->other_ifaces_links) ?></p>
         <?php } ?>
 
     </header>
 
     <main>
-        <?php if (! $v->is_monitored) { ?>
+        <?php if (!$v->is_monitored) { ?>
             <p>Interface <mark><?= $v->iface ?></mark> is not monitored by vnstat.</p>
-		<?php } else { // Begin the rendering?>
+        <?php } else { // Begin the rendering
+        ?>
 
             <!-- Date Time Info -->
             <section>
@@ -156,17 +190,17 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                     <tbody>
                         <?php
                         $lastdate = null;
-    foreach ($v->data[0]->interfaces[0]->traffic->hour as $hour) {
-        $date = sprintf(
-            '%d-%02d-%02d',
-            $hour->date->year,
-            $hour->date->month,
-            $hour->date->day
-        );
-        $time  = sprintf('%02d:00', $hour->time->hour);
-        $rx    = (0 === $hour->rx) ? '-' : U::humanFilesize($hour->rx);
-        $tx    = (0 === $hour->tx) ? '-' : U::humanFilesize($hour->tx);
-        $total = (0 === $hour->rx + $hour->tx) ? '-' : U::humanFilesize($hour->rx + $hour->tx); ?>
+                        foreach ($v->data[0]->interfaces[0]->traffic->hour as $hour) {
+                            $date = sprintf(
+                                '%d-%02d-%02d',
+                                $hour->date->year,
+                                $hour->date->month,
+                                $hour->date->day
+                            );
+                            $time  = sprintf('%02d:00', $hour->time->hour);
+                            $rx    = (0 === $hour->rx) ? '-' : U::humanFilesize($hour->rx);
+                            $tx    = (0 === $hour->tx) ? '-' : U::humanFilesize($hour->tx);
+                            $total = (0 === $hour->rx + $hour->tx) ? '-' : U::humanFilesize($hour->rx + $hour->tx); ?>
                             <tr>
                                 <?php
                                 if ($lastdate !== $date) { ?>
@@ -174,14 +208,14 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
                                     <td colspan="3"></td>
                             </tr>
                         <?php }
-        $lastdate = $date; ?>
+                                $lastdate = $date; ?>
                         <td><?= $time ?></td>
                         <td><?= $rx ?></td>
                         <td><?= $tx ?></td>
                         <td><?= $total ?></td>
                         </tr>
                     <?php
-    } ?>
+                        } ?>
                     </tbody>
                 </table> <!-- End of HOURS -->
             </section>
@@ -288,7 +322,7 @@ use Tricarte\Pvnstat\Helpers\Utils as U;
             </section>
 
         <?php
-} // Check current interface is monitored by vnstat
+        } // Check current interface is monitored by vnstat
         ?>
     </main>
 
